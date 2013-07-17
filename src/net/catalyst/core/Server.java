@@ -7,7 +7,6 @@ import java.util.concurrent.Executors;
 import net.catalyst.model.Client;
 import net.catalyst.net.PipelineFactory;
 import net.catalyst.plugin.PluginService;
-import net.catalyst.processor.UpdateProcessor;
 import net.catalyst.util.EntityList;
 import net.catalyst.util.Log;
 import net.catalyst.util.Settings;
@@ -25,7 +24,6 @@ public class Server {
 	private PluginService pluginService = new PluginService();
 	private DataService dataService = new DataService();
 	private TaskManager taskManager = new TaskManager();
-	private UpdateProcessor updateProcessor;
 	private boolean updating = false;
 
 	private static long curMemory;
@@ -37,7 +35,6 @@ public class Server {
 		startMeasure();
 		server = new Server();
 		server.init();
-		server.updateProcessor = new UpdateProcessor(server);
 
 		Log.system("Catalyst Cube World Server");
 		Log.system("Cores: " + Runtime.getRuntime().availableProcessors());
@@ -47,8 +44,6 @@ public class Server {
 		Log.system("Startup Time: " + (System.nanoTime() - time) / 100000 + "ms");
 		Log.system(Settings.SERVER_NAME + " is now Online!");
 
-
-		server.getTaskManager().scheduledProcessor(server.getUpdateProcessor(), 600);
 	}
 
 
@@ -69,7 +64,7 @@ public class Server {
 	}
 
 	public synchronized int registerClient(Client c) {
-		if(c.getCharacter() == null) {
+		/*if(c.getCharacter() == null) {
 			Log.error("WARNING: CHARACTER MISSING @ REGISTRATION");
 			return -1;
 		}
@@ -78,11 +73,12 @@ public class Server {
 				System.out.println("REGISTRATION FAILED: CLIENT ALREADY EXISTED!");
 				return -1;
 			}
-		}
+		}*/
 
 		getClients().add(c);
 		c.setInitalised(true);
 		Log.system("CLIENT HAS BEEN REGISTERED");
+		playersSinceRestart++;
 		return playersSinceRestart;
 	}
 
@@ -124,6 +120,7 @@ public class Server {
 
 			bs.setPipelineFactory(new PipelineFactory());
 			bs.setOption("child.tcpNoDelay", true);
+			bs.setOption("tcpNoDelay", true);
 			bs.setOption("child.keepAlive", true);
 			bs.setOption("child.reuseAddress", true);
 			bs.setOption("child.bufferFactory", new HeapChannelBufferFactory(ByteOrder.LITTLE_ENDIAN));
@@ -161,13 +158,7 @@ public class Server {
 	}
 
 
-	public void setUpdateProcessor(UpdateProcessor updateProcessor) {
-		this.updateProcessor = updateProcessor;
-	}
 
-	public UpdateProcessor getUpdateProcessor() {
-		return updateProcessor;
-	}
 
 	public void setUpdating(boolean updating) {
 		this.updating = updating;

@@ -4,6 +4,7 @@ public class Settings {
 	
 	public static final int LISTEN_PORT = 12345;
 	public static final String LOCAL_IP = "localhost";
+	public static final int SEED = 7432157;
 	
 	public static final String SERVER_NAME = "Catalyst Cube World Server";
 	

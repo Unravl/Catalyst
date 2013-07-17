@@ -2,7 +2,7 @@ package net.catalyst.net;
 
 import net.catalyst.core.Server;
 import net.catalyst.model.Client;
-import net.catalyst.processor.PacketProcessor;
+import net.catalyst.tasks.IncomingDataTask;
 
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBuffers;
@@ -24,7 +24,8 @@ public class ChannelHandler extends SimpleChannelUpstreamHandler {
 	@Override
 	public void channelClosed(ChannelHandlerContext ctx, ChannelStateEvent e) throws Exception {
 		Client c = (Client)ctx.getAttachment();
-		c.destroy();
+		if(c != null)
+			c.disconnect();
 	}
 
 	
@@ -33,13 +34,17 @@ public class ChannelHandler extends SimpleChannelUpstreamHandler {
 		Packet msg = (Packet) e.getMessage();
 		Client c = (Client)ctx.getAttachment();
 	
-		Server.getTaskManager().assignProcessor(new PacketProcessor(c, msg));
+		if(c != null)
+			Server.getTaskManager().assignProcessor(new IncomingDataTask(c, msg));
 	}
 	
 	@Override
 	public void exceptionCaught(ChannelHandlerContext ctx, ExceptionEvent e) {
-		System.out.println("NETTY EXCEPTION (IGNORE)");
-		e.getCause().printStackTrace();
+		Client c = (Client)ctx.getAttachment();
+		if(c != null) {
+			c.disconnect();
+		}
+		System.out.println("Client Disconnected");
 		//e.getCause().printStackTrace();
 		//outboundChannel.write(msg);
 	}

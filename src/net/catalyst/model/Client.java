@@ -12,10 +12,8 @@ import org.jboss.netty.channel.ChannelHandlerContext;
 
 public class Client extends Entity {
 
-	private long serverKey;
 	private Character character;
 	private boolean initalised;
-	private boolean destroyed;
 	private boolean changingAppearance = false;
 	private ActionSender actionSender = new ActionSender(this);
 	private long lastPing = System.currentTimeMillis();
@@ -24,24 +22,15 @@ public class Client extends Entity {
 
 	private ChannelHandlerContext channelHandlerContext;
 
-	public void destroy() {
-		if(isDestroyed())
-			return;
+	public void disconnect() {
 		if(isInitalised())
 			Server.getServer().unregisterClient(this);
-		
-		
-		setDestroyed(true);
 		this.getChannelHandlerContext().getChannel().disconnect();
-		Log.system("A CLIENT HAS LEFT THE SERVER!");
 
 	}
 
 	public void load() {
-		Server.getServer().registerClient(this);
-		Channel ch = getChannelHandlerContext().getChannel();
-		ch.write(new PacketBuilder().setBare(true).addByte((byte)0).toPacket());
-
+		setIndex(Server.getServer().registerClient(this));
 	}
 	
 	public ActionSender getActionSender() {
@@ -61,16 +50,6 @@ public class Client extends Entity {
 		return channelHandlerContext;
 	}
 
-
-	public void setServerKey(long serverKey) {
-		this.serverKey = serverKey;
-	}
-
-
-	public long getServerKey() {
-		return serverKey;
-	}
-
 	public void setCharacter(Character character) {
 		this.character = character;
 	}
@@ -85,14 +64,6 @@ public class Client extends Entity {
 
 	public boolean isInitalised() {
 		return initalised;
-	}
-
-	public void setDestroyed(boolean destroyed) {
-		this.destroyed = destroyed;
-	}
-
-	public boolean isDestroyed() {
-		return destroyed;
 	}
 
 	public void setLastPing(long lastPing) {
